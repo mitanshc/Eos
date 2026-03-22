@@ -13,6 +13,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Address bar & nav buttons -->
         <DockPanel Grid.Row="0" Background="#f2f2f2" LastChildFill="True" Margin="0,0,0,2">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="5,3">
                 <Button x:Name="BackButton" Content="←" Width="30" Margin="2"
@@ -23,41 +24,32 @@
                         Click="RefreshButton_Click"/>
                 <Button x:Name="HomeButton" Content="🏠" Width="30" Margin="2"
                         Click="HomeButton_Click"/>
-            
             </StackPanel>
-            <Border Height="26"
-                    CornerRadius="8"
-                    BorderThickness="1"
-                    BorderBrush="#CFCFCF"
-                    Background="White"
-                    Margin="12,0,12,0" VerticalAlignment="Center">
+            <Border Height="26" CornerRadius="8"
+                    BorderThickness="1" BorderBrush="#CFCFCF"
+                    Background="White" Margin="12,0,12,0" VerticalAlignment="Center">
                 <TextBox x:Name="AddressBar"
-                         GotFocus="AddressBar_GotFocus"
-                         BorderThickness="0"
+                         GotFocus="AddressBar_GotFocus" BorderThickness="0"
                          Background="Transparent"
-                         DockPanel.Dock="Right"
-                         Margin="0"
-                         Height="26"
-                         VerticalContentAlignment="Center"
+                         Margin="0" Height="26" VerticalContentAlignment="Center"
                          KeyDown="AddressBar_KeyDown"
-                         Text="https://www.microsoft.com" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                         Text="https://www.microsoft.com" HorizontalAlignment="Stretch"/>
             </Border>
         </DockPanel>
 
+        <!-- Tab strip + New‑tab button -->
         <Grid Grid.Row="1">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" 
-                  VerticalScrollBarVisibility="Disabled"
-                  Margin="0,8,38,0" VerticalAlignment="Center">
+                          VerticalScrollBarVisibility="Disabled"
+                          Margin="0,8,38,0" VerticalAlignment="Center">
                 <StackPanel x:Name="TabStrip" Orientation="Horizontal"/>
             </ScrollViewer>
-
-            <!-- + button OVERLAY at end -->
             <Button x:Name="NewTabButton" Content="+" Width="30" Height="20" VerticalAlignment="Center"
-            Margin="0,8,8,0" Click="NewTabButton_Click" Cursor="Hand" HorizontalAlignment="Right"/>
+                    Margin="0,8,8,0" Click="NewTabButton_Click" Cursor="Hand" HorizontalAlignment="Right"/>
         </Grid>
 
-
-        <wv2:WebView2 x:Name="Browser" Grid.Row="2"/>
+        <!-- Browser area (WebView2s live here) -->
+        <Grid Grid.Row="2" x:Name="BrowserArea"/>
 
     </Grid>
 </Window>
