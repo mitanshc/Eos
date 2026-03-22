@@ -13,6 +13,7 @@ namespace Eos
     public partial class MainWindow : Window
     {
         private const string HomeUrl = "file:///C://Users//choks//LocalDocuments//Eos//Assets//newTab.html";
+
         private readonly List<TabData> tabs = new();
         private TabData? activeTab;
 
@@ -41,46 +42,48 @@ namespace Eos
             var tab = new TabData { Title = "New Tab", Url = url };
             tabs.Add(tab);
 
-            // Create WebView2 for the tab
-            var webView = new WebView2();
-            webView.VerticalAlignment = VerticalAlignment.Stretch;
-            webView.HorizontalAlignment = HorizontalAlignment.Stretch;
-            webView.Visibility = Visibility.Collapsed;
+            var webView = new WebView2
+            {
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                Visibility = Visibility.Visible  // Start visible to force init
+            };
+
             webView.NavigationCompleted += Browser_NavigationCompleted;
             webView.CoreWebView2InitializationCompleted += WebView_CoreWebView2InitializationCompleted;
+
+            webView.CoreWebView2InitializationCompleted += (s, e) =>
+            {
+                if (e.IsSuccess && webView.CoreWebView2 != null)
+                {
+                    webView.CoreWebView2.NewWindowRequested += (sender, args) =>
+                    {
+                        args.NewWindow = webView.CoreWebView2;
+                        args.Handled = true;
+                    };
+                }
+            };
 
             tab.WebView = webView;
             BrowserArea.Children.Add(webView);
 
-            CreateTabButton(tab);
+            Dispatcher.BeginInvoke(new Action(() => {
+                webView.Source = new Uri(HomeUrl);
 
-            if (isFirstTab || activeTab == null)
-                SwitchToTab(tab);
-            AddressBar.Text = "";
+                CreateTabButton(tab);
+                if (isFirstTab || activeTab == null || true)  
+                    SwitchToTab(tab);
+            }));
         }
 
-        private async void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
+
+        private void WebView_CoreWebView2InitializationCompleted(object sender, CoreWebView2InitializationCompletedEventArgs e)
         {
-            if (e.IsSuccess && sender is WebView2 wv)
-            {
-                // Force navigation immediately after initialization
-                if (!string.IsNullOrEmpty(activeTab?.Url))
-                {
-                    try
-                    {
-                        wv.Source = new Uri(activeTab.Url);
-                    }
-                    catch
-                    {
-                        wv.Source = new Uri(HomeUrl); // Fallback
-                    }
-                }
-                else
-                {
-                    wv.NavigateToString(HomeUrl); // Use Navigate() for more reliable local file loading
-                }
-            }
+            if (!e.IsSuccess || !(sender is WebView2 wv))
+                return;
+
         }
+
 
 
         private void CreateTabButton(TabData tab)
@@ -167,16 +170,21 @@ namespace Eos
             if (activeTab == tab)
                 return;
 
-            // Hide previous WebView
-            if (activeTab?.WebView != null)
-                activeTab.WebView.Visibility = Visibility.Collapsed;
+            foreach (var t in tabs)
+            {
+                if (t != tab && t.WebView != null)
+                    t.WebView.Visibility = Visibility.Collapsed;
+            }
 
             activeTab = tab;
 
             if (tab.WebView != null)
+            {
                 tab.WebView.Visibility = Visibility.Visible;
+            }
 
-            AddressBar.Text = tab.Url;
+            string displayUrl = tab.Url?.Contains("newTab.html") == true ? "" : (tab.Url ?? "");
+            AddressBar.Text = displayUrl;
         }
 
         private void NavigateTab(TabData tab, string input)
@@ -185,7 +193,7 @@ namespace Eos
 
             var target = NormalizeInput(input);
             tab.Url = target;
-            AddressBar.Text = target;
+            AddressBar.Text = "";
             tab.WebView.Source = new Uri(target);
         }
 
@@ -195,8 +203,9 @@ namespace Eos
             if (string.IsNullOrWhiteSpace(input))
                 return HomeUrl;
 
-            if (input.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-                input.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            if (input.StartsWith("http", StringComparison.OrdinalIgnoreCase) ||
+                input.StartsWith("file:///", StringComparison.OrdinalIgnoreCase) ||
+                input.StartsWith("about:", StringComparison.OrdinalIgnoreCase))
                 return input;
 
             if (input.Contains('.') && !input.Contains(' '))
@@ -204,6 +213,8 @@ namespace Eos
 
             return "https://www.google.com/search?q=" + Uri.EscapeDataString(input);
         }
+
+
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
@@ -232,6 +243,7 @@ namespace Eos
         private void NewTabButton_Click(object sender, RoutedEventArgs e)
         {
             CreateNewTab(false, HomeUrl);
+
         }
 
         private void AddressBar_KeyDown(object sender, KeyEventArgs e)
@@ -247,7 +259,6 @@ namespace Eos
 
         private void AddressBar_GotFocus(object sender, RoutedEventArgs e)
         {
-            AddressBar.Focus();
             AddressBar.SelectAll();
             Keyboard.Focus(AddressBar);
         }
@@ -260,7 +271,7 @@ namespace Eos
             if (activeTab == null || activeTab.WebView != wv)
                 return;
 
-            if (!e.IsSuccess)   // or: if (e.WebErrorStatus != CoreWebView2WebErrorStatus.Unknown)
+            if (!e.IsSuccess)
                 return;
 
             activeTab.Url = wv.Source?.ToString() ?? activeTab.Url;
@@ -274,6 +285,16 @@ namespace Eos
                     {
                         activeTab.Title = title.Length > 25 ? title[..25] + "…" : title;
                         UpdateTabTitle(activeTab);
+                    }
+
+                    string url = wv.Source?.ToString() ?? "";
+                    if (url.Contains("newTab.html"))
+                    {
+                        AddressBar.Text = "";
+                    }
+                    else
+                    {
+                        AddressBar.Text = url;
                     }
                 }
             });

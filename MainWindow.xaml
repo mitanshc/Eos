@@ -17,9 +17,11 @@
         <DockPanel Grid.Row="0" Background="#f2f2f2" LastChildFill="True" Margin="0,0,0,2">
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" Margin="5,3">
                 <Button x:Name="BackButton" Content="←" Width="30" Margin="2"
-                        Click="BackButton_Click" Cursor="Hand"/>
+                        Click="BackButton_Click" Cursor="Hand"
+                        IsEnabled="{Binding CanGoBack, RelativeSource={RelativeSource AncestorType=wv2:WebView2}, Mode=OneWay}"/>
                 <Button x:Name="ForwardButton" Content="→" Width="30" Margin="2"
-                        Click="ForwardButton_Click" Cursor="Hand"/>
+                        Click="ForwardButton_Click" Cursor="Hand"
+                        IsEnabled="{Binding CanGoForward, RelativeSource={RelativeSource AncestorType=wv2:WebView2}, Mode=OneWay}"/>
                 <Button x:Name="RefreshButton" Content="⟳" Width="30" Margin="2"
                         Click="RefreshButton_Click"/>
                 <Button x:Name="HomeButton" Content="🏠" Width="30" Margin="2"
@@ -41,7 +43,7 @@
         <Grid Grid.Row="1">
             <ScrollViewer HorizontalScrollBarVisibility="Auto" 
                           VerticalScrollBarVisibility="Disabled"
-                          Margin="0,8,38,0" VerticalAlignment="Center">
+                          Margin="12,8,46,0" VerticalAlignment="Center">
                 <StackPanel x:Name="TabStrip" Orientation="Horizontal"/>
             </ScrollViewer>
             <Button x:Name="NewTabButton" Content="+" Width="30" Height="20" VerticalAlignment="Center"
